@@ -95,9 +95,9 @@ ordersApp.post("/add", checkToken, async (req, res) => {
   }
 });
 
-ordersApp.get("/list", checkToken, (req, res) => {
+ordersApp.get("/list/:email", checkToken, (req, res) => {
   try {
-    let userEmail = req.body.userEmail;
+    let userEmail = req.params.email;
     pool.query(
       "SELECT id, DATE_FORMAT(order_date, '%m/%d/%Y') as order_date, user_name, address, city, state, pin, total FROM orders WHERE user_id = (SELECT id FROM users WHERE email = ?)",
       [userEmail],
@@ -119,7 +119,7 @@ ordersApp.get("/details/:id", checkToken, (req, res) => {
   try {
     let orderId = req.params.id;
     pool.query(
-      "SELECT order_details.*, products.name FROM order_details INNER JOIN products ON order_details.product_id = products.id WHERE order_details.order_id = ?",
+      "SELECT order_details.*, products.name, products.image FROM order_details INNER JOIN products ON order_details.product_id = products.id WHERE order_details.order_id = ?",
       [orderId],
       (err, results) => {
         if (err) {
