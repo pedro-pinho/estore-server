@@ -42,7 +42,7 @@ const insertOrderDetails = (orderId, orderDetails) => {
         query,
         [
           orderId,
-          detail.product_id,
+          detail.productId,
           detail.quantity,
           detail.price,
           detail.amount,
@@ -92,6 +92,46 @@ ordersApp.post("/add", checkToken, async (req, res) => {
     res.status(201).json({ message: "Order Placed" });
   } catch (err) {
     res.status(500).json({ error: err.code, message: err.message });
+  }
+});
+
+ordersApp.get("/list", checkToken, (req, res) => {
+  try {
+    let userEmail = req.body.userEmail;
+    pool.query(
+      "SELECT id, DATE_FORMAT(order_date, '%m/%d/%Y') as order_date, user_name, address, city, state, pin, total FROM orders WHERE user_id = (SELECT id FROM users WHERE email = ?)",
+      [userEmail],
+      (err, results) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ error: err.code, message: err.message });
+        }
+        res.status(200).json(results);
+      },
+    );
+  } catch (err) {
+    res.status(400).json({ error: err.code, message: err.message });
+  }
+});
+
+ordersApp.get("/details/:id", checkToken, (req, res) => {
+  try {
+    let orderId = req.params.id;
+    pool.query(
+      "SELECT order_details.*, products.name FROM order_details INNER JOIN products ON order_details.product_id = products.id WHERE order_details.order_id = ?",
+      [orderId],
+      (err, results) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ error: err.code, message: err.message });
+        }
+        res.status(200).json(results);
+      },
+    );
+  } catch (err) {
+    res.status(400).json({ error: err.code, message: err.message });
   }
 });
 
